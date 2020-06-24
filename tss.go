@@ -3,6 +3,7 @@ package tss
 import (
 	"errors"
 	"fmt"
+	"github.com/google/go-tpm/tpm2"
 
 	tpmutil "github.com/google/go-tpm/tpmutil"
 )
@@ -213,6 +214,17 @@ func (t *TPM) NVReadValue(index uint32, ownerPassword string, size, offhandle ui
 		return nvRead12(t.RWC, index, offhandle, size, ownerPassword)
 	case TPMVersion20:
 		return nvRead20(t.RWC, tpmutil.Handle(index), tpmutil.Handle(offhandle), ownerPassword, int(size))
+	}
+	return nil, fmt.Errorf("unsupported TPM version: %x", t.Version)
+}
+
+func (t *TPM) GetCapability(cap, subcap uint32) ([]byte, error) {
+	switch t.Version {
+	case TPMVersion12:
+		return getCapability12(t.RWC, cap, subcap)
+	case TPMVersion20:
+		return getCapability20(t.RWC, tpm2.Capability(cap), subcap)
+
 	}
 	return nil, fmt.Errorf("unsupported TPM version: %x", t.Version)
 }

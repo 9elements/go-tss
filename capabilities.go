@@ -152,3 +152,11 @@ func resetLockValue12(rwc io.ReadWriteCloser, ownerPW string) (bool, error) {
 func resetLockValue20(rwc io.ReadWriteCloser, ownerPW string) (bool, error) {
 	return false, fmt.Errorf("not yet supported by tss")
 }
+
+func getCapability12(rwc io.ReadWriteCloser, cap, subcap uint32) ([]byte, error) {
+	return tpm1.GetCapabilityRaw(rwc, cap, subcap)
+}
+
+func getCapability20(rwc io.ReadWriteCloser, cap tpm2.Capability, subcap uint32) ([]byte, error) {
+	return nil, fmt.Errorf("not yet supported by tss")
+}

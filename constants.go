@@ -18,11 +18,6 @@ const (
 	TPMVersion20
 )
 
-const (
-	nvPerOwnerRead = 0x00100000
-	nvPerAuthRead  = 0x00200000
-)
-
 // TPMInterface indicates how the client communicates
 // with the TPM.
 type TPMInterface uint8
