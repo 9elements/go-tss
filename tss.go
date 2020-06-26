@@ -3,11 +3,14 @@ package tss
 import (
 	"errors"
 	"fmt"
-	"github.com/google/go-tpm/tpm2"
+
+	tpm1 "github.com/google/go-tpm/tpm"
+	tpm2 "github.com/google/go-tpm/tpm2"
 
 	tpmutil "github.com/google/go-tpm/tpmutil"
 )
 
+// NewTPM looks for a TPM and initializes it for further use
 func NewTPM() (*TPM, error) {
 	candidateTPMs, err := probeSystemTPMs()
 	if err != nil {
@@ -218,13 +221,45 @@ func (t *TPM) NVReadValue(index uint32, ownerPassword string, size, offhandle ui
 	return nil, fmt.Errorf("unsupported TPM version: %x", t.Version)
 }
 
-func (t *TPM) GetCapability(cap, subcap uint32) ([]byte, error) {
+// GetCapability requests the TPMs capability function and returns an interface.
+// User needs to take care of the data for now.
+func (t *TPM) GetCapability(cap, subcap uint32) ([]interface{}, error) {
+	var err error
+	var b []byte
+	var ret []interface{}
 	switch t.Version {
 	case TPMVersion12:
-		return getCapability12(t.RWC, cap, subcap)
+		b, err = getCapability12(t.RWC, cap, subcap)
 	case TPMVersion20:
-		return getCapability20(t.RWC, tpm2.Capability(cap), subcap)
-
+		b, err = getCapability20(t.RWC, tpm2.Capability(cap), subcap)
+	default:
+		return nil, fmt.Errorf("unsupported TPM version: %x", t.Version)
 	}
-	return nil, fmt.Errorf("unsupported TPM version: %x", t.Version)
+	if err != nil {
+		return nil, err
+	}
+	ret = append(ret, b)
+	return ret, nil
+}
+
+// ReadNVPublic reads public data about an NVRAM index. Permissions and what so not.
+func (t *TPM) ReadNVPublic(index uint32) ([]interface{}, error) {
+	var err error
+	var a *tpm1.NVDataPublic
+	var b tpm2.NVPublic
+	var ret []interface{}
+	switch t.Version {
+	case TPMVersion12:
+		a, err = readNVPublic12(t.RWC, index)
+		ret = append(ret, a)
+	case TPMVersion20:
+		b, err = readNVPublic20(t.RWC, index)
+		ret = append(ret, b)
+	default:
+		return nil, fmt.Errorf("unsupported TPM version %v", t.Version)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return ret, nil
 }

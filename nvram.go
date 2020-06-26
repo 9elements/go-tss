@@ -27,8 +27,8 @@ func nvRead12(rwc io.ReadWriteCloser, index, offset, len uint32, auth string) ([
 
 	// Check if authData is needed
 	// AuthRead 0x00200000 | OwnerRead 0x00100000
-	needAuthData := 1 >> (indexData.Permission.Attributes & (nvPerAuthRead | nvPerOwnerRead))
-	authread := 1 >> (indexData.Permission.Attributes & nvPerAuthRead)
+	needAuthData := 1 >> (indexData.Permission.Attributes & (tpm1.NVPerAuthRead | tpm1.NVPerOwnerRead))
+	authread := 1 >> (indexData.Permission.Attributes & tpm1.NVPerAuthRead)
 
 	if needAuthData == 0 {
 		if authread != 0 {

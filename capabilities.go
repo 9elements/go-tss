@@ -9,6 +9,7 @@ import (
 
 	tpm1 "github.com/google/go-tpm/tpm"
 	tpm2 "github.com/google/go-tpm/tpm2"
+	tpmutil "github.com/google/go-tpm/tpmutil"
 )
 
 func readTPM12Information(rwc io.ReadWriter) (TPMInfo, error) {
@@ -18,10 +19,10 @@ func readTPM12Information(rwc io.ReadWriter) (TPMInfo, error) {
 		return TPMInfo{}, err
 	}
 
-	manufacturerId := binary.BigEndian.Uint32(manufacturerRaw)
+	manufacturerID := binary.BigEndian.Uint32(manufacturerRaw)
 	return TPMInfo{
-		VendorInfo:   TCGVendorID(manufacturerId).String(),
-		Manufacturer: TCGVendorID(manufacturerId),
+		VendorInfo:   TCGVendorID(manufacturerID).String(),
+		Manufacturer: TCGVendorID(manufacturerID),
 	}, nil
 }
 
@@ -159,4 +160,12 @@ func getCapability12(rwc io.ReadWriteCloser, cap, subcap uint32) ([]byte, error)
 
 func getCapability20(rwc io.ReadWriteCloser, cap tpm2.Capability, subcap uint32) ([]byte, error) {
 	return nil, fmt.Errorf("not yet supported by tss")
+}
+
+func readNVPublic12(rwc io.ReadWriteCloser, index uint32) (*tpm1.NVDataPublic, error) {
+	return tpm1.GetNVIndex(rwc, index)
+}
+
+func readNVPublic20(rwc io.ReadWriteCloser, index uint32) (tpm2.NVPublic, error) {
+	return tpm2.NVReadPublic(rwc, tpmutil.Handle(index))
 }
