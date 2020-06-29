@@ -243,7 +243,7 @@ func (t *TPM) GetCapability(cap, subcap uint32) ([]interface{}, error) {
 }
 
 // ReadNVPublic reads public data about an NVRAM index. Permissions and what so not.
-func (t *TPM) ReadNVPublic(index uint32) ([]interface{}, error) {
+func (t *TPM) ReadNVPublic(index uint32) (interface{}, error) {
 	var err error
 	var a *tpm1.NVDataPublic
 	var b tpm2.NVPublic
