@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	tpm1 "github.com/google/go-tpm/tpm"
 	tpm2 "github.com/google/go-tpm/tpm2"
 
 	tpmutil "github.com/google/go-tpm/tpmutil"
@@ -243,23 +242,24 @@ func (t *TPM) GetCapability(cap, subcap uint32) ([]interface{}, error) {
 }
 
 // ReadNVPublic reads public data about an NVRAM index. Permissions and what so not.
-func (t *TPM) ReadNVPublic(index uint32) (interface{}, error) {
+func (t *TPM) ReadNVPublic(index uint32) ([]byte, error) {
+	var raw []byte
 	var err error
-	var a *tpm1.NVDataPublic
-	var b tpm2.NVPublic
-	var ret []interface{}
 	switch t.Version {
 	case TPMVersion12:
-		a, err = readNVPublic12(t.RWC, index)
-		ret = append(ret, a)
+		raw, err = readNVPublic12(t.RWC, index)
+		if err != nil {
+			return nil, err
+		}
+		return raw, nil
 	case TPMVersion20:
-		b, err = readNVPublic20(t.RWC, index)
-		ret = append(ret, b)
+		raw, err = readNVPublic20(t.RWC, index)
+		if err != nil {
+			return nil, err
+		}
 	default:
 		return nil, fmt.Errorf("unsupported TPM version %v", t.Version)
 	}
-	if err != nil {
-		return nil, err
-	}
-	return ret, nil
+
+	return raw, nil
 }

@@ -162,10 +162,14 @@ func getCapability20(rwc io.ReadWriteCloser, cap tpm2.Capability, subcap uint32)
 	return nil, fmt.Errorf("not yet supported by tss")
 }
 
-func readNVPublic12(rwc io.ReadWriteCloser, index uint32) (*tpm1.NVDataPublic, error) {
-	return tpm1.GetNVIndex(rwc, index)
+func readNVPublic12(rwc io.ReadWriteCloser, index uint32) ([]byte, error) {
+	return tpm1.GetCapabilityRaw(rwc, tpm1.CapNVIndex, index)
 }
 
-func readNVPublic20(rwc io.ReadWriteCloser, index uint32) (tpm2.NVPublic, error) {
-	return tpm2.NVReadPublic(rwc, tpmutil.Handle(index))
+func readNVPublic20(rwc io.ReadWriteCloser, index uint32) ([]byte, error) {
+	data, err := tpm2.NVReadPublic(rwc, tpmutil.Handle(index))
+	if err != nil {
+		return nil, err
+	}
+	return tpmutil.Pack(data)
 }
