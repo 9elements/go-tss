@@ -5,7 +5,6 @@
 package tss
 
 import (
-	"crypto"
 	"fmt"
 	"io"
 )
@@ -44,13 +43,6 @@ var vendors = map[TCGVendorID]string{
 	1464156928: "Winbond",
 	1380926275: "Fuzhou Rockchip",
 	1196379975: "Google",
-}
-
-// PCR encapsulates the value of a PCR at a point in time.
-type PCR struct {
-	Index     int
-	Digest    []byte
-	DigestAlg crypto.Hash
 }
 
 // TPM interfaces with a TPM device on the system.

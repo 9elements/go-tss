@@ -1,7 +1,6 @@
 package tss
 
 import (
-	"crypto/sha1"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -69,89 +68,6 @@ func readTPM20Information(rwc io.ReadWriter) (TPMInfo, error) {
 		FirmwareVersionMajor: int((fw.Value & 0xffff0000) >> 16),
 		FirmwareVersionMinor: int(fw.Value & 0x0000ffff),
 	}, nil
-}
-
-func takeOwnership12(rwc io.ReadWriteCloser, ownerPW, srkPW string) error {
-	var ownerAuth [20]byte
-	var srkAuth [20]byte
-
-	if ownerPW != "" {
-		ownerAuth = sha1.Sum([]byte(ownerPW))
-	}
-
-	if srkPW != "" {
-		srkAuth = sha1.Sum([]byte(srkPW))
-	}
-
-	pubek, err := tpm1.ReadPubEK(rwc)
-	if err != nil {
-		return err
-	}
-
-	if err := tpm1.TakeOwnership(rwc, ownerAuth, srkAuth, pubek); err != nil {
-		return err
-	}
-	return nil
-}
-
-func takeOwnership20(rwc io.ReadWriteCloser, ownerPW, srkPW string) error {
-	return fmt.Errorf("not supported by go-tpm for TPM2.0")
-}
-
-func clearOwnership12(rwc io.ReadWriteCloser, ownerPW string) error {
-	var ownerAuth [20]byte
-
-	if ownerPW != "" {
-		ownerAuth = sha1.Sum([]byte(ownerPW))
-	}
-
-	err := tpm1.OwnerClear(rwc, ownerAuth)
-	if err != nil {
-		err := tpm1.ForceClear(rwc)
-		if err != nil {
-			return fmt.Errorf("couldn't clear TPM 1.2 with ownerauth nor force clear")
-		}
-	}
-
-	return nil
-}
-
-func clearOwnership20(rwc io.ReadWriteCloser, ownerPW string) error {
-	return fmt.Errorf("not supported by go-tpm for TPM2.0")
-}
-
-func readPubEK12(rwc io.ReadWriteCloser, ownerPW string) ([]byte, error) {
-	var ownerAuth [20]byte
-	if ownerPW != "" {
-		ownerAuth = sha1.Sum([]byte(ownerPW))
-	}
-
-	ek, err := tpm1.OwnerReadPubEK(rwc, ownerAuth)
-	if err != nil {
-		return nil, err
-	}
-
-	return ek, nil
-}
-
-func readPubEK20(rwc io.ReadWriteCloser, ownerPW string) ([]byte, error) {
-	return nil, fmt.Errorf("not supported by go-tpm for TPM2.0")
-}
-
-func resetLockValue12(rwc io.ReadWriteCloser, ownerPW string) (bool, error) {
-	var ownerAuth [20]byte
-	if ownerPW != "" {
-		ownerAuth = sha1.Sum([]byte(ownerPW))
-	}
-
-	if err := tpm1.ResetLockValue(rwc, ownerAuth); err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
-func resetLockValue20(rwc io.ReadWriteCloser, ownerPW string) (bool, error) {
-	return false, fmt.Errorf("not yet supported by tss")
 }
 
 func getCapability12(rwc io.ReadWriteCloser, cap, subcap uint32) ([]byte, error) {
